@@ -1,0 +1,15 @@
+# Core
+torch
+torch-geometric
+pandas
+numpy
+scipy
+scikit-learn
+networkx
+
+# Notebooks
+jupyter
+
+# Note: torch-geometric's companion packages (torch-scatter, torch-sparse) must match your
+# torch + CUDA build. See https://pytorch-geometric.readthedocs.io for install instructions.
+# Before publishing, pin exact versions with:  pip freeze > requirements.txt
