@@ -15,7 +15,7 @@ those five splits.
 
 | Run | Network | Label | Correlation |
 |---|---|---|---|
-| — | none (MLP baseline) | raw | 0.39 |
+| base | none (MLP baseline) | raw | 0.39 |
 | 1 | IID physical PPI, kidney-filtered | raw | 0.5551 ± 0.0500 |
 | 2 | HumanBase kidney functional | raw | 0.5191 ± 0.0449 |
 | 3 | HumanBase kidney functional | differential | 0.0351 ± 0.0156 |
@@ -32,7 +32,7 @@ was counted twice, once in each direction. The network is unchanged.
 
 ---
 
-## Run 1 — physical interaction network
+## Run 1: physical interaction network
 
 IID, where an edge means two proteins physically bind. Two edge features, the physical
 interaction score and coexpression.
@@ -69,7 +69,7 @@ So the accuracy is there and the weights aren't readable.
 
 ---
 
-## Run 2 — functional network
+## Run 2: functional network
 
 HumanBase kidney, where an edge means two genes are predicted to work together whether or not
 they touch. One edge feature instead of two. Nothing else changed.
@@ -129,7 +129,7 @@ abundance.
 
 ---
 
-## Run 3 — kidney-specific labels
+## Run 3: kidney-specific labels
 
 Same network and settings as run 2. The label changed. Each gene's average score across all
 cancer cell lines is subtracted, so a gene essential everywhere flattens to zero and what's left
@@ -180,4 +180,10 @@ it were noise the halves would disagree.
 Over 20 random splits, across the 10,518 genes with complete labels, they agree at
 **0.5182 ± 0.0396**, which works out to **0.683** for the full 32 lines.
 
-So the signal is in the label, and run 3 gets 0.035 on it.
+So the kidney signal is there; run 3 reaches 0.035 of it. The reason is structural. The graph is
+the same in every cell line, so it can only carry the part of essentiality that doesn't change
+between lines, the gene-intrinsic baseline, and subtracting that baseline in run 3 removes
+exactly what it can explain. Beneath that, a symmetric undirected edge has no way to hold a
+directed dependency, and a static edge has no way to hold a conditional one, so the relationship
+the kidney-specific label asks for is one this class of model cannot represent. That is the
+finding, and what the next version is built around.
