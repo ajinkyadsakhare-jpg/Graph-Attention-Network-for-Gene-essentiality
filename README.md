@@ -1,13 +1,16 @@
 # Cell-Line specific Gene Essentiality with Graph Attention Networks
 
-This project starts with a basic question: Does essentiality varies in cell lines for a particular lineage?
+This project starts with a basic question: How much does essentiality varies in cell lines for a particular lineage?
 Models like MAHI (Aggarwal et al., RECOMB 2026) and GATDep (Fan et al., J Transl Med 2025) predict essentiality across all lineages
 which are heavily dominated by common essential genes pan lineage, which is crucial and larger part for the essentiality scope,
 This project focuses on the small residual within lineage cell line specific signal within a single lineage.
 
 The work is confined in a single lineage at a time. Intitial notebooks covered kidney cell lines but due to kidney's small number of cell lines in DepMap the signal was hard to estimate so the modelling was transferred to lung, which is one the largest lineage within DepMap.
 
-To answer the basic question, firstly its important to check whether cell line specific signal in a single lineage even exists or not? The graph below shows deviated labels where each gene's GeneEffect mean across cell lines was substracted from its GeneEffect score.
+Most genes behave the same across cell lines, if they are essential they are essential every where if they are no they are nowhere.
+Following the same logic as GATDep (Fan et al., J Transl Med 2025) which choose highly variable genes at a threshold pf standard deviation > 0.2, trimming 18k down to 2979. 
+
+Going back to the basic question, its important to check whether cell line specific signal exist in a single lineage? The graph below shows deviated labels where each gene's GeneEffect mean across cell lines was substracted from its GeneEffect score.
 
 ## The idea
 
