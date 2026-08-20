@@ -1,16 +1,17 @@
-# Cell-Line specific Gene Essentiality with Graph Attention Networks
+# Gene Essentiality with Graph Attention Networks
 
-This project starts with a basic question: How much does essentiality varies in cell lines for a particular lineage?
-Models like MAHI (Aggarwal et al., RECOMB 2026) and GATDep (Fan et al., J Transl Med 2025) predict essentiality across all lineages
-which are heavily dominated by common essential genes pan lineage, which is crucial and larger part for the essentiality scope,
-This project focuses on the small residual within lineage cell line specific signal within a single lineage.
+This project builds a graph attention network to predict gene essentiality in cancer cell lines,
+and reads the attention weights afterwards to see which gene relationships the model used.
 
-The work is confined in a single lineage at a time. Intitial notebooks covered kidney cell lines but due to kidney's small number of cell lines in DepMap the signal was hard to estimate so the modelling was transferred to lung, which is one the largest lineage within DepMap.
+A graph attention network predicts each gene from its neighbours. But whether a gene is essential
+in a particular tumour isn't a property of its neighbours. It is caused by one gene's state
+changing what another gene needs to survive, and a single network, the same in every cell line,
+cannot hold a relationship like that. So the model reaches the essentiality that is common across
+cancers and misses the part specific to one. The runs below show where and why, and that is what
+the next version is built from.
 
-Most genes behave the same across cell lines, if they are essential they are essential every where if they are no they are nowhere.
-Following the same logic as GATDep (Fan et al., J Transl Med 2025) which choose highly variable genes at a threshold pf standard deviation > 0.2, trimming 18k down to 2979. 
-
-Going back to the basic question, its important to check whether cell line specific signal exist in a single lineage? The graph below shows deviated labels where each gene's GeneEffect mean across cell lines was substracted from its GeneEffect score.
+The work is in a single lineage, kidney. The lineage was an arbitrary starting point, but
+working within one lineage is what makes the context-specific question askable at all.
 
 ## The idea
 
