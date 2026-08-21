@@ -4,21 +4,19 @@ Three runs, each changing one thing from the one before, and one check with no m
 
 Correlation is between predicted and actual essentiality across all genes in a cell line the
 model hadn't seen. It's a check that the model learned something worth reading the weights for,
-not the result itself. The weights are given in full.
+not the result itself.
 
 ## What was run
 
-All three runs use the same 32 kidney cell lines from DepMap, the same two features per gene,
-expression and damaging mutations, 4 attention heads and 200 epochs. The cell lines are split
-five ways, so the model is always tested on ones it hasn't seen. The ± is the spread across
-those five splits.
+All three runs use the same 32 kidney cell lines from DepMap and the same two features per gene,
+expression and damaging mutations as nodes , 4 attention heads and 200 epochs. The cell lines are
+split five ways using (k-fold), so the model is always tested on ones it hasn't seen. The ± is the 
+spread across those five splits.
 
-| Run | Network | Label | Correlation |
-|---|---|---|---|
-| base | none (MLP baseline) | raw | 0.39 |
-| 1 | IID physical PPI, kidney-filtered | raw | 0.5551 ± 0.0500 |
-| 2 | HumanBase kidney functional | raw | 0.5191 ± 0.0449 |
-| 3 | HumanBase kidney functional | differential | 0.0351 ± 0.0156 |
+0  MLP baseline | raw | 0.39 |
+1  IID physical PPI, kidney-filtered | raw | 0.5551 ± 0.0500 |
+2  HumanBase kidney functional | raw | 0.5191 ± 0.0449 |
+3  HumanBase kidney functional | differential | 0.0351 ± 0.0156 |
 
 A gene's weights are spread across its own connections and add up to 1. VHL has 7 connections,
 BRCA1 has 696. So a raw weight means something within a gene and nothing between genes. The
@@ -45,7 +43,7 @@ directions wouldn't fit in memory at this edge count.
 Ten genes from the COSMIC Cancer Gene Census, and the connection each one weighted highest:
 
 | Gene | Connections | Top partner | Weight | Normalised |
-|---|---|---|---|---|
+
 | VHL | 260 | ATE1 | 0.0324 | 8.44 |
 | TP53 | 474 | HRK | 0.0155 | 7.35 |
 | EGFR | 367 | CD300LB | 0.0245 | 8.99 |
@@ -173,17 +171,4 @@ MDM2–MTBP at 52.
 
 ## Is the kidney signal there at all?
 
-No model in this one. The 32 cell lines were split into two halves of 16. Each half was used
-separately to work out which genes look kidney-specific, and the two answers were compared. If
-it were noise the halves would disagree.
 
-Over 20 random splits, across the 10,518 genes with complete labels, they agree at
-**0.5182 ± 0.0396**, which works out to **0.683** for the full 32 lines.
-
-So the kidney signal is there; run 3 reaches 0.035 of it. The reason is structural. The graph is
-the same in every cell line, so it can only carry the part of essentiality that doesn't change
-between lines, the gene-intrinsic baseline, and subtracting that baseline in run 3 removes
-exactly what it can explain. Beneath that, a symmetric undirected edge has no way to hold a
-directed dependency, and a static edge has no way to hold a conditional one, so the relationship
-the kidney-specific label asks for is one this class of model cannot represent. That is the
-finding, and what the next version is built around.
