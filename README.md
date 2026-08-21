@@ -1,21 +1,37 @@
 # Gene Essentiality with Graph Attention Networks
 
-A graph attention network predicts gene essentiality (how much a cell needs each gene) in cancer cell lines, read afterwards for the gene relationships it used — the attention weights, not the prediction, are the point. Everything is in one lineage, kidney, which is what makes the context-specific question askable at all.
+Gene Essentiality means how much a gene is necessary for the cell to survive in cancer cell lines.
 
-Existing models (HELP, MAHI) predict essentiality well but include a gene network that barely contributes. The question here is what happens when the graph has to carry the prediction alone. (GATDep, 2025, does much the same, and appeared while this was underway.)
+There are a lot of prediction models that are able to predict the essential genes by integrating gene network, but the aim of this project is to think about the gene interactions the model is relying on to predict the essentiality.
+
+These gene interactions vary across lineages so to limit that variation,the model is entirely made around one lineage. The goal is to have context specific interactions of genes.
+
+Existing models that were mentioned above are (HELP, MAHI & GATDep, 2025),(GATDep specifically does much the same, and appeared while this was underway.)
 
 ## The runs
 
-Four, each changing one thing. An MLP with no graph reaches 0.39; a physical interaction network (IID) lifts it to 0.56; a functional one (HumanBase) holds it at 0.52. Trained on kidney-specific labels — each gene's pan-cancer average subtracted — it collapses to 0.035, while a split-half check puts the kidney signal's reliability near 0.68. The signal is real; the model isn't reaching it. The weights say the same: per gene they're right (VHL returns its complex, MTOR returns mTORC1 and mTORC2 subunits), but ranked globally they just return whatever is abundant.
+There were four runs each with their addition, An MLP with no graph reaches 0.39; a physical protein-protein interaction network from (IID) lifts it to 0.56; a functional (HumanBase) network holds it at 0.52.
+
+Each were trained on kidney-specific labels and the final one where each gene's pan-cancer average subtracted which collapses to 0.035, There seems to be signal but the model isn't reaching it.
+
+The weights say the same, per gene they're right (VHL returns its complex, MTOR returns mTORC1 and mTORC2 subunits), but ranked globally they just return whatever is abundant.(includes the housekeeping genes, which is why we took differentiated label).
 
 ## The finding
 
-The result isn't the 0.035, it's why. Context-specific essentiality is directed, conditional, and pathway-mediated — a gene becomes essential because something happened to another gene, only in the cell where it happened, through the pathway they share. A GAT on a fixed undirected network is the opposite at every point: it averages a gene's neighbours (symmetric), from the same graph in every line (static), assuming a gene resembles them (homophily). So it can only carry the gene-intrinsic baseline — exactly the part that vanishes when the average is subtracted — and is blind to what is specific to one line. Thin features compound this but don't cause it. The model was built from what the data allowed, not from how context-specific essentiality actually arises; that is the lesson.
+The model predicts essentiality, but the goal was to read the attention weights and see which interactions the model used to make those predictions.
+
+Since the goal depends on which genes are essential and which are not, Pearson's correlation was used, the same metric used by HELP and GATDep.
+
+The model with no graph network reached 0.39. Of the four runs, the physical protein-protein interaction network and the HumanBase functional network gave correlations of around 0.56 and 0.52 respectively, both using raw GeneEffect scores as the label.
+
+GeneEffect also carries a mixed signal from housekeeping genes, so a further run used a differential label, each gene's average subtracted, to remove that common part, and this gave around 0.035. That points towards the model not being able to capture the cell-line-specific part.
+
+Even a somewhat better architecture would not probably fix this, the direction now is how to get the signal to the model in the first place. But the size of the drop itself suggests a complex signal that may or may not be findable, since it could also just be noise.
 
 ## Where it goes
 
-Everything the model sees should be a state — what's in the cell now — with essentiality as what follows removing a gene. That needs a graph that changes per line (conditional), driven by mutation as the event that reshapes it (directed), with the pathway as what the effect travels through. DependANT, which rewires networks per line but with hand-built rather than learned features, is the closest existing work.
+Adding a gene network raised the correlation on the raw label but not on the differential one, so the interactions the model used carry the common part of essentiality, not the cell-line-specific part.
 
-## Repository
+Reading those interactions was the goal, and the correlation is too low to trust them for it.
 
-`notebooks/` (processing, the MLP baseline, the base GAT, one variation per experiment), `results/` (numbers and attention weights per run), `CITATIONS.md`. Runs in Colab; data isn't included — DepMap's terms, large files — but `data/data_README.md` links to the sources. This is diagnostic groundwork: the global attention ranking isn't usable, the partner check is a look not a test, and the two network runs differ by more than the network.
+That low correlation comes down to the architecture like the network's high node degree meaning GATConv averages each gene over too many neighbors, and that aggregation blends the cell-line-specific signal away. So this is a limit of the approach as built, not one to read too much into.
