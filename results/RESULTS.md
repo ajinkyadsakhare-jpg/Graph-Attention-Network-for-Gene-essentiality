@@ -8,8 +8,8 @@ not the result itself.
 
 ## What was run
 
-All three runs use the same 32 kidney cell lines from DepMap and the same two features per gene,
-expression and damaging mutations as nodes , 4 attention heads and 200 epochs. The cell lines are
+All three runs use the same 32 kidney cell lines from DepMap after processing them and the two features per gene,
+expression and damaging mutations as nodes were same with 4 attention heads and 200 epochs. The cell lines are
 split five ways using (k-fold), so the model is always tested on ones it hasn't seen. The ± is the 
 spread across those five splits.
 
@@ -18,22 +18,16 @@ spread across those five splits.
 2  HumanBase kidney functional | raw | 0.5191 ± 0.0449 |
 3  HumanBase kidney functional | differential | 0.0351 ± 0.0156 |
 
-A gene's weights are spread across its own connections and add up to 1. VHL has 7 connections,
-BRCA1 has 696. So a raw weight means something within a gene and nothing between genes. The
-tables below give a normalised weight alongside it, the raw weight multiplied by the number of
-connections. That's 1.0 if a gene spread its attention evenly, higher if it concentrated on one
+A gene's weights are spread across its own connections/neighbours and add up to 1. VHL has 7 connections,
+BRCA1 has 696.So the same total of 1 is split very differently between them. which means a raw weightcan be
+compared between its parameters The tables below give a normalised weight alongside it, the raw weight multiplied 
+by the number of connections. That's 1.0 if a gene spread its attention evenly, higher if it concentrated on one
 partner, and it can be compared between genes.
-
-Connection counts are lower here than in earlier versions of this file. The readout now counts
-incoming edges only, plus the self-connection the model adds to every gene. Before, each edge
-was counted twice, once in each direction. The network is unchanged.
-
----
 
 ## Run 1: physical interaction network
 
-IID, where an edge means two proteins physically bind. Two edge features, the physical
-interaction score and coexpression.
+IID, this network is about two proteins physically binding/ in contact. Two edge features, the physical
+interaction confidence score and coexpression (if the expressions are changing together or not).
 
 Folds: 0.5845, 0.4618, 0.5626, 0.5583, 0.6084 → **0.5551 ± 0.0500**
 
@@ -63,11 +57,9 @@ under BRAF, which suggests it's generic rather than specific to any of them.
 Ranking every connection at once is no better. MAP1LC3B2–MAP1LC3B leads, and the rest is the
 same genes repeating, KIF2A in ten of the top 100, TADA2A in seven, RRP9 in six.
 
-So the accuracy is there and the weights aren't readable.
+So the accuracy is not much and the weights aren't readable.
 
----
-
-## Run 2: functional network
+## Run 2: HumanBase functional network
 
 HumanBase kidney, where an edge means two genes are predicted to work together whether or not
 they touch. One edge feature instead of two. Nothing else changed.
@@ -105,10 +97,6 @@ known to work with:
 | EGFR | ERBB2 | 1 |
 | PIK3CA | PIK3R1 | 3 |
 
-VHL returns the Elongin–Cullin complex it belongs to, in order. RICTOR and MAPKAP1 are both
-mTORC2, with RPTOR from mTORC1 behind them. BARD1 is BRCA1's binding partner, ERBB2 is what EGFR
-dimerises with, and PIK3R1 is PIK3CA's regulatory subunit.
-
 The raw and normalised columns disagree about which genes look strong. VHL puts 0.4287 on CUL2,
 the largest raw weight in the table, but it only has 7 connections so an even spread would give
 0.14 and that's a normalised 3.00. EGFR puts 0.1490 on ERBB2 across 391 connections, a normalised
@@ -125,24 +113,19 @@ So the per-gene view and the global ranking disagree. Asking what a named gene a
 returns known partners. Asking which connections in the whole graph got the most weight returns
 abundance.
 
----
-
 ## Run 3: kidney-specific labels
 
 Same network and settings as run 2. The label changed. Each gene's average score across all
-cancer cell lines is subtracted, so a gene essential everywhere flattens to zero and what's left
+cancer cell lines is subtracted, so a gene essential everywhere changes to zero and what's left
 is specific to kidney.
 
 The numbers and tables below are from the earlier version of the pipeline, before the readout
 was changed to count incoming edges only. Weights here are raw, not normalised, and a partner
 can appear twice because each edge was counted in both directions.
 
-**Before training.** PAX8, a kidney lineage dependency, comes out at −0.1766, HIF1A at +0.1288.
+Before training. PAX8, a kidney lineage dependency, comes out at −0.1766, HIF1A at +0.1288.
 Across all 336,588 values the standard deviation is 0.208, the range is −2.65 to 3.33, and 51%
 sit within ±0.1 of zero.
-
-Each gene's label against its number of connections, over 10,592 genes: the raw label at
-ρ = −0.291 (p = 4.5 × 10⁻²⁰⁶), the kidney-specific one at ρ = +0.071 (p = 3.5 × 10⁻¹³).
 
 **Prediction.** Folds: 0.0205, 0.0491, 0.0502, 0.0435, 0.0124 → **0.0351 ± 0.0156**
 
@@ -166,9 +149,5 @@ and RPTOR at 1 and 2, BRAF has YWHAG, YWHAB and RAF1 at 1, 2 and 3. The correlat
 
 The full ranking leads with HSP90AB1–TPM3 at 0.9164, then COPS6–COPS9 at 10, C3–CFB at 50 and
 MDM2–MTBP at 52.
-
----
-
-## Is the kidney signal there at all?
 
 
